@@ -1,19 +1,19 @@
-import re
+import logging
 import sys
-from typing import Callable
 
 import ply.yacc as yacc
 
+import logger
 from asmlex import tokens
 
-parser = yacc.yacc()
-args = sys.argv
+logger=logging.getLogger(__name__)
 
 WARD_BIT = 8
 MEMORY_BIT = 8
 
-RESISTER = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0},
-MEMORY = [0 for _ in range(1 << WARD_BIT)]
+resister = {'R1': 0, 'R2': 0, 'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
+
+memory = [0 for _ in range(1 << WARD_BIT)]
 
 OVERFLOW = 0
 CARRY = 0
@@ -22,9 +22,9 @@ ZERO = 0
 
 
 def calc(value1: int, value2: int, operator: int):
-    global RESISTER
+    global resister
     global OVERFLOW, CARRY, SIGN, ZERO
-    operator %= 8
+    operator =operator % 8
     result = 0
     if operator == 0:
         result = value1+1
@@ -42,28 +42,45 @@ def calc(value1: int, value2: int, operator: int):
         result = value1 & value2
     if operator == 7:
         result = ~value1
+    logger.info('singed: %d , unsined : %d bin:(%s)',result,result,bin(result))
     SIGN = result < 0
     ZERO = result == 0
-    CARRY=not (0 <=result <(1<<MEMORY_BIT))
+    CARRY = not (0 <= result < (1 << MEMORY_BIT))
     OVERFLOW = not(-(1 << MEMORY_BIT) <= result <= ((1 << MEMORY_BIT)-1))
+
     result &= ((1 << MEMORY_BIT)-1)
-    RESISTER['1'] = result
+    resister['R1'] = result
+    logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",SIGN,ZERO,CARRY,OVERFLOW)
+    
 
 
-if len(args) == 2:
-    with open(args[1], "r", encoding='UTF-8') as f:
-        while True:
-            line = f.readline()
-            if line:
-                result = parser.parse(line)
-            else:
-                break
-else:
-    while True:
-        try:
-            s = input("SIMCOM> ")
-        except EOFError:
-            break
-        if not s:
-            continue
-        result = parser.parse(s)
+def p_mov(p):
+    'cmd : MOV RESISTER RESISTER'
+    global resister
+    resister[p[2]] = resister[p[3]]
+
+def p_func(p):
+    'cmd : FUNC OPERATOR RESISTER'
+    global resister
+    logger.info('R1 : %d , %s : %d , op : %d',resister['R1'],p[3],resister[p[3]],p[2])
+    calc(resister['R1'],resister[p[3]],p[2])
+
+def p_halt(p):
+    'cmd : HALT'
+    sys.exit()
+
+
+def p_error(p):
+    print("Syntax error in input!")
+
+
+parser = yacc.yacc()
+
+while True:
+    try:
+        s = input("SIMCOM> ")
+    except EOFError:
+        break
+    if not s:
+        continue
+    result = parser.parse(s)
