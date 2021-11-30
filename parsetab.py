@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'FUNC HALT MOV OPERATOR RESISTERcmd : MOV RESISTER RESISTERcmd : FUNC OPERATOR RESISTERcmd : HALT'
+_lr_signature = 'FUNC HALT LDI MOV OPERATOR RESISTER VALUEcmd : MOV RESISTER RESISTERcmd : FUNC OPERATOR RESISTERcmd : LDI RESISTER VALUEcmd : HALT'
     
-_lr_action_items = {'MOV':([0,],[2,]),'FUNC':([0,],[3,]),'HALT':([0,],[4,]),'$end':([1,4,7,8,],[0,-3,-1,-2,]),'RESISTER':([2,5,6,],[5,7,8,]),'OPERATOR':([3,],[6,]),}
+_lr_action_items = {'MOV':([0,],[2,]),'FUNC':([0,],[3,]),'LDI':([0,],[4,]),'HALT':([0,],[5,]),'$end':([1,5,9,10,11,],[0,-4,-1,-2,-3,]),'RESISTER':([2,4,6,7,],[6,8,9,10,]),'OPERATOR':([3,],[7,]),'VALUE':([8,],[11,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -27,7 +27,8 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> cmd","S'",1,None,None,None),
-  ('cmd -> MOV RESISTER RESISTER','cmd',3,'p_mov','asmyacc.py',51),
-  ('cmd -> FUNC OPERATOR RESISTER','cmd',3,'p_func','asmyacc.py',56),
-  ('cmd -> HALT','cmd',1,'p_halt','asmyacc.py',58),
+  ('cmd -> MOV RESISTER RESISTER','cmd',3,'p_mov','asmyacc.py',58),
+  ('cmd -> FUNC OPERATOR RESISTER','cmd',3,'p_func','asmyacc.py',63),
+  ('cmd -> LDI RESISTER VALUE','cmd',3,'p_ldi','asmyacc.py',69),
+  ('cmd -> HALT','cmd',1,'p_halt','asmyacc.py',74),
 ]

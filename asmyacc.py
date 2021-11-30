@@ -6,7 +6,7 @@ import ply.yacc as yacc
 import logger
 from asmlex import tokens
 
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 WARD_BIT = 8
 MEMORY_BIT = 8
@@ -24,7 +24,7 @@ ZERO = 0
 def calc(value1: int, value2: int, operator: int):
     global resister
     global OVERFLOW, CARRY, SIGN, ZERO
-    operator =operator % 8
+    operator = operator % 8
     result = 0
     if operator == 0:
         result = value1+1
@@ -42,7 +42,8 @@ def calc(value1: int, value2: int, operator: int):
         result = value1 & value2
     if operator == 7:
         result = ~value1
-    logger.info('singed: %d , unsined : %d bin:(%s)',result,result,bin(result))
+    logger.info('singed: %d , unsined : %d bin:(%s)',
+                result, result, bin(result))
     SIGN = result < 0
     ZERO = result == 0
     CARRY = not (0 <= result < (1 << MEMORY_BIT))
@@ -50,8 +51,8 @@ def calc(value1: int, value2: int, operator: int):
 
     result &= ((1 << MEMORY_BIT)-1)
     resister['R1'] = result
-    logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",SIGN,ZERO,CARRY,OVERFLOW)
-    
+    logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
+                SIGN, ZERO, CARRY, OVERFLOW)
 
 
 def p_mov(p):
@@ -59,11 +60,21 @@ def p_mov(p):
     global resister
     resister[p[2]] = resister[p[3]]
 
+
 def p_func(p):
     'cmd : FUNC OPERATOR RESISTER'
     global resister
-    logger.info('R1 : %d , %s : %d , op : %d',resister['R1'],p[3],resister[p[3]],p[2])
-    calc(resister['R1'],resister[p[3]],p[2])
+    logger.info('R1 : %d , %s : %d , op : %d',
+                resister['R1'], p[3], resister[p[3]], p[2])
+    calc(resister['R1'], resister[p[3]], p[2])
+
+
+def p_ldi(p):
+    'cmd : LDI RESISTER VALUE'
+    global resister
+    resister[p[2]] = p[3]
+    logger.info('%s: %d', p[2], resister[p[2]],)
+
 
 def p_halt(p):
     'cmd : HALT'
