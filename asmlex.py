@@ -6,7 +6,6 @@ tokens = ('MOV',  # レジスタ間のデータ転送
           'LDI',  # 即値からレジスタへのデータ転送
           'HALT',  # 停止
           'RESISTER',  # レジスタ
-          'OPERATOR',  # 演算子の種類
           'VALUE',#値
 
 
@@ -20,27 +19,17 @@ t_HALT = r'HALT'
 t_RESISTER = r'R[1-7]'
 
 
-def t_OPERATOR(t):
-    r'[0-7]'
-    t.value = int(t.value)
-    return t
-
-
 def t_VALUE(t):
-    r'=(0x|0b|)?\d+'
-    t.value = int(t.value[1:],0)
+    r'[0-9A-Fa-f]+(H|)'
+    t.value = int(t.value[:-1],16) if t.value[-1] == 'H' else int(t.value,10)
     return t
-
-
 
 
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-
 t_ignore = ' \t'
-
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])

@@ -62,7 +62,7 @@ def p_mov(p):
 
 
 def p_func(p):
-    'cmd : FUNC OPERATOR RESISTER'
+    'cmd : FUNC VALUE RESISTER'
     global resister
     logger.info('R1 : %d , %s : %d , op : %d',
                 resister['R1'], p[3], resister[p[3]], p[2])
