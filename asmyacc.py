@@ -95,11 +95,21 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-while True:
-    try:
-        s = input("SIMCOM> ")
-    except EOFError:
-        break
-    if not s:
-        continue
-    result = parser.parse(s)
+args = sys.argv
+if len(args) == 2:
+    f = open(args[1], "r")
+    while True:
+        line = f.readline()
+        if line:
+            result = parser.parse(line)
+        else:
+            break
+else:
+    while True:
+        try:
+            s = input('SIMCOM > ')
+        except EOFError:
+            break
+        if not s:
+            continue
+        result = parser.parse(s)
