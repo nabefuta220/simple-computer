@@ -16,7 +16,7 @@ t_MOV = r'MOV'
 t_FUNC = r'FUNC'
 t_LDI=r'LDI'
 t_HALT = r'HALT'
-t_RESISTER = r'R[1-7]'
+t_RESISTER = r'R[0-7]'
 
 
 def t_VALUE(t):

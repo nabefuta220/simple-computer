@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 WARD_BIT = 8
 MEMORY_BIT = 8
 
-resister = {'R1': 0, 'R2': 0, 'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
+resister = {'R0':None,'R1': 0, 'R2': 0, 'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
 
 memory = [0 for _ in range(1 << WARD_BIT)]
 
@@ -74,6 +74,7 @@ def p_ldi(p):
     global resister
     resister[p[2]] = p[3]
     logger.info('%s: %d', p[2], resister[p[2]],)
+
 
 
 def p_halt(p):
