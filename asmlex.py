@@ -5,6 +5,7 @@ tokens = ('MOV',  # レジスタ間のデータ転送
           'FUNC',  # 演算
           'LDI',  # 即値からレジスタへのデータ転送
           'HALT',  # 停止
+          'OUT', #出力
           'RESISTER',  # レジスタ
           'VALUE',#値
 
@@ -16,6 +17,7 @@ t_MOV = r'MOV'
 t_FUNC = r'FUNC'
 t_LDI=r'LDI'
 t_HALT = r'HALT'
+t_OUT=r'OUT'
 t_RESISTER = r'R[0-7]'
 
 

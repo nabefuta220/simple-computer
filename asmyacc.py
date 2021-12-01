@@ -81,6 +81,13 @@ def p_halt(p):
     'cmd : HALT'
     sys.exit()
 
+def p_out(p):
+    'cmd : OUT RESISTER VALUE'
+    global resister
+    if p[3]==0:
+        print(resister[p[2]])
+    else:
+        raise NotImplementedError('device %s is not resistered!',p[2])
 
 def p_error(p):
     print("Syntax error in input!")
