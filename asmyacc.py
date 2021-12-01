@@ -103,13 +103,15 @@ if len(args) == 2:
         if line:
             result = parser.parse(line)
         else:
-            break
+            raise Exception("exert not finished!")
 else:
     while True:
         try:
             s = input('SIMCOM > ')
         except EOFError:
+            raise Exception("exert not finished!")
             break
         if not s:
             continue
         result = parser.parse(s)
+
