@@ -10,15 +10,17 @@ logger = logging.getLogger(__name__)
 
 WARD_BIT = 8
 MEMORY_BIT = 8
+logger.info("value max: %d", 1 << MEMORY_BIT)
 
-resister = {'R0':None,'R1': 0, 'R2': 0, 'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
+resister = {'R0': None, 'R1': 0, 'R2': 0,
+            'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
 
 memory = [0 for _ in range(1 << WARD_BIT)]
 
-OVERFLOW = 0
-CARRY = 0
-SIGN = 0
-ZERO = 0
+OVERFLOW = False
+CARRY = False
+SIGN = False
+ZERO = False
 
 
 def calc(value1: int, value2: int, operator: int):
@@ -42,15 +44,18 @@ def calc(value1: int, value2: int, operator: int):
         result = value1 & value2
     if operator == 7:
         result = ~value1
-    logger.info('singed: %d , unsined : %d bin:(%s)',
-                result, result, bin(result))
-    SIGN = result < 0
-    ZERO = result == 0
-    CARRY = not (0 <= result < (1 << MEMORY_BIT))
-    OVERFLOW = not(-(1 << MEMORY_BIT) <= result <= ((1 << MEMORY_BIT)-1))
+    logger.info('result : singed: %d , unsined : %d bin:(%s)',
+                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
+
+    CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
+    OVERFLOW = not(0 <= result <(1 << MEMORY_BIT))
 
     result &= ((1 << MEMORY_BIT)-1)
+    SIGN = result < 0
+    ZERO = result == 0
     resister['R1'] = result
+    logger.info('fixed : singed: %d , unsined : %d bin:(%s)',
+                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
     logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
                 SIGN, ZERO, CARRY, OVERFLOW)
 
@@ -76,18 +81,19 @@ def p_ldi(p):
     logger.info('%s: %d', p[2], resister[p[2]],)
 
 
-
 def p_halt(p):
     'cmd : HALT'
     sys.exit()
 
+
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
     global resister
-    if p[3]==0:
+    if p[3] == 0:
         print(resister[p[2]])
     else:
-        raise NotImplementedError('device %s is not resistered!',p[2])
+        raise NotImplementedError('device %s is not resistered!', p[2])
+
 
 def p_error(p):
     print("Syntax error in input!")
@@ -114,4 +120,3 @@ else:
         if not s:
             continue
         result = parser.parse(s)
-
