@@ -48,7 +48,7 @@ def calc(value1: int, value2: int, operator: int):
                 (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
 
     CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
-    OVERFLOW = not(0 <= result <(1 << MEMORY_BIT))
+    OVERFLOW = not(0 <= result < (1 << MEMORY_BIT))
 
     result &= ((1 << MEMORY_BIT)-1)
     SIGN = result < 0
@@ -78,7 +78,31 @@ def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
     global resister
     resister[p[2]] = p[3]
-    logger.info('%s: %d', p[2], resister[p[2]],)
+    logger.info('%s: %d', p[2], resister[p[2]])
+
+
+def p_fuci(p):
+    'cmd : FUCI VALUE VALUE'
+    global resister
+    calc(resister['R1'], p[3], p[2])
+
+
+def p_load(p):
+    'cmd : LOAD RESISTER VALUE'
+    global resister, memory
+    resister[p[2]] = memory[p[3]]
+
+
+def p_sta(p):
+    'cmd : STA RESISTER VALUE'
+    global resister, memory
+    memory[p[3]] = resister[p[2]]
+
+
+def p_func(p):
+    'cmd : FUNC VALUE VALUE'
+    global resister, memory
+    calc(resister['R1'], memory[p[3]], p[2])
 
 
 def p_halt(p):
