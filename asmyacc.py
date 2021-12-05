@@ -1,40 +1,38 @@
-import re
+import logging
 import sys
-from typing import Callable
 
 import ply.yacc as yacc
 
+import logger
 from asmlex import tokens
 
-parser = yacc.yacc()
-args = sys.argv
+logger = logging.getLogger(__name__)
 
 WARD_BIT = 8
 MEMORY_BIT = 8
+logger.info("value max: %d", 1 << MEMORY_BIT)
 
-RESISTER = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0},
-MEMORY = [0 for _ in range(1 << WARD_BIT)]
+resister = {'R0': None, 'R1': 0, 'R2': 0,
+            'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
 
-OVERFLOW = 0
-CARRY = 0
-SIGN = 0
-ZERO = 0
+memory = [0 for _ in range(1 << WARD_BIT)]
+
+OVERFLOW = False
+CARRY = False
+SIGN = False
+ZERO = False
 
 
 def calc(value1: int, value2: int, operator: int):
-    global RESISTER
+    global resister
     global OVERFLOW, CARRY, SIGN, ZERO
-<<<<<<< Updated upstream
     operator %= 8
-=======
     value1_sign = (value1 & ((1 << MEMORY_BIT-1)-1)) + (-1) * \
         (bool(value1 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     value2_sign = (value2 & ((1 << MEMORY_BIT-1)-1))+(-1) * \
         (bool(value2 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     logger.info("value1:\t%d\t(%d)\t%s", value1, value1_sign, bin(value1))
     logger.info("value2:\t%d\t(%d)\t%s", value2, value2_sign, bin(value2))
-    operator = operator % 8
->>>>>>> Stashed changes
     result = 0
     result_sign = 0
     if operator == 0:
@@ -60,14 +58,6 @@ def calc(value1: int, value2: int, operator: int):
         result_sign = value1 & value2
     if operator == 7:
         result = ~value1
-<<<<<<< Updated upstream
-    SIGN = result < 0
-    ZERO = result == 0
-    CARRY=not (0 <=result <(1<<MEMORY_BIT))
-    OVERFLOW = not(-(1 << MEMORY_BIT) <= result <= ((1 << MEMORY_BIT)-1))
-    result &= ((1 << MEMORY_BIT)-1)
-    RESISTER['1'] = result
-=======
         result_sign = ~value1
 
     logger.info('result:\t%d\t(%d)\t%s',
@@ -83,6 +73,18 @@ def calc(value1: int, value2: int, operator: int):
     SIGN = result_sign_fixed < 0
     ZERO = result == 0
     resister['R1'] = result
+    logger.info('result : singed: %d , unsined : %d bin:(%s)',
+                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
+
+    CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
+    OVERFLOW = not(0 <= result < (1 << MEMORY_BIT))
+
+    result &= ((1 << MEMORY_BIT)-1)
+    SIGN = result < 0
+    ZERO = result == 0
+    resister['R1'] = result
+    logger.info('fixed : singed: %d , unsined : %d bin:(%s)',
+                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
     logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
                 SIGN, ZERO, CARRY, OVERFLOW)
 
@@ -149,22 +151,60 @@ def p_out(p):
 
 def p_error(p):
     print("Syntax error in input!")
->>>>>>> Stashed changes
+
+def p_load(p):
+    'cmd : LOAD RESISTER VALUE'
+    global resister, memory
+    resister[p[2]] = memory[p[3]]
 
 
+def p_sta(p):
+    'cmd : STA RESISTER VALUE'
+    global resister, memory
+    memory[p[3]] = resister[p[2]]
+
+
+def p_func(p):
+    'cmd : FUNC VALUE VALUE'
+    global resister, memory
+    calc(resister['R1'], memory[p[3]], p[2])
+
+
+def p_halt(p):
+    'cmd : HALT'
+    sys.exit()
+
+
+def p_out(p):
+    'cmd : OUT RESISTER VALUE'
+    global resister
+    if p[3] == 0:
+        print(resister[p[2]])
+    else:
+        raise NotImplementedError('device %s is not resistered!', p[2])
+
+
+def p_error(p):
+    print("Syntax error in input!")
+
+
+parser = yacc.yacc()
+
+args = sys.argv
 if len(args) == 2:
-    with open(args[1], "r", encoding='UTF-8') as f:
-        while True:
-            line = f.readline()
-            if line:
-                result = parser.parse(line)
-            else:
-                break
+    f = open(args[1], "r")
+    while True:
+        line = f.readline()
+        if line:
+            result = parser.parse(line)
+        else:
+            raise Exception("exert not finished!")
 else:
     while True:
         try:
-            s = input("SIMCOM> ")
+            s = input('SIMCOM > ')
         except EOFError:
+            raise Exception("exert not finished!")
             break
         if not s:
             continue
