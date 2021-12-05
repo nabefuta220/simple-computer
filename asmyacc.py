@@ -26,13 +26,13 @@ ZERO = False
 def calc(value1: int, value2: int, operator: int):
     global resister
     global OVERFLOW, CARRY, SIGN, ZERO
-    operator %= 8
     value1_sign = (value1 & ((1 << MEMORY_BIT-1)-1)) + (-1) * \
         (bool(value1 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     value2_sign = (value2 & ((1 << MEMORY_BIT-1)-1))+(-1) * \
         (bool(value2 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     logger.info("value1:\t%d\t(%d)\t%s", value1, value1_sign, bin(value1))
     logger.info("value2:\t%d\t(%d)\t%s", value2, value2_sign, bin(value2))
+    operator = operator % 8
     result = 0
     result_sign = 0
     if operator == 0:
@@ -83,8 +83,6 @@ def calc(value1: int, value2: int, operator: int):
     SIGN = result < 0
     ZERO = result == 0
     resister['R1'] = result
-    logger.info('fixed : singed: %d , unsined : %d bin:(%s)',
-                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
     logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
                 SIGN, ZERO, CARRY, OVERFLOW)
 
