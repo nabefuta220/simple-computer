@@ -1,5 +1,6 @@
 import logging
 import sys
+from types import SimpleNamespace
 
 import ply.yacc as yacc
 
@@ -21,6 +22,18 @@ OVERFLOW = False
 CARRY = False
 SIGN = False
 ZERO = False
+STATE_FLAG = 0
+
+
+def generate_state_flag():
+    """
+    ステートフラグを生成する
+    順番は　0b(CARRY)(SIGN)(ZERO)(OVERFLOW)の順
+    """
+    global CARRY, SIGN, ZERO, OVERFLOW
+    global STATE_FLAG
+    STATE_FLAG = CARRY << 1 | SIGN << 2 | ZERO << 1 | OVERFLOW << 0
+    logger.info('state:\t%s', bin(STATE_FLAG))
 
 
 def calc(value1: int, value2: int, operator: int):
@@ -85,12 +98,19 @@ def calc(value1: int, value2: int, operator: int):
     resister['R1'] = result
     logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
                 SIGN, ZERO, CARRY, OVERFLOW)
+    generate_state_flag()
 
 
 def p_mov(p):
     'cmd : MOV RESISTER RESISTER'
     global resister
+    global ZERO, SIGN, OVERFLOW, CARRY
     resister[p[2]] = resister[p[3]]
+    ZERO = resister[p[2]] == 0
+    SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
+    OVERFLOW = SIGN
+    CARRY = False
+    generate_state_flag()
 
 
 def p_func_r(p):
@@ -104,9 +124,15 @@ def p_func_r(p):
 def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
     global resister
+    global ZERO, SIGN, OVERFLOW, CARRY
     resister[p[2]] = p[3]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
                 (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), p[3], bin(p[3]))
+    ZERO = resister[p[2]] == 0
+    SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
+    OVERFLOW = SIGN
+    CARRY = False
+    generate_state_flag()
 
 
 def p_fuci(p):
@@ -118,13 +144,30 @@ def p_fuci(p):
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
     global resister, memory
+    global ZERO,SIGN,OVERFLOW,CARRY
     resister[p[2]] = memory[p[3]]
+    logger.info('%s :\t%d\t(%d)\t%s', p[2],
+                (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
+    ZERO = resister[p[2]] == 0
+    SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
+    OVERFLOW = SIGN
+    CARRY = False
+    generate_state_flag()
 
 
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
     global resister, memory
     memory[p[3]] = resister[p[2]]
+    logger.info('memory[%d] :\t%d\t(%d)\t%s', p[3],
+                (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
+    ZERO = resister[p[2]] == 0
+    SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
+    OVERFLOW = SIGN
+    CARRY = False
+    generate_state_flag()
+
+
 
 
 def p_func(p):
@@ -149,6 +192,7 @@ def p_out(p):
 
 def p_error(p):
     print("Syntax error in input!")
+
 
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
