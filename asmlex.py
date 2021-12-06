@@ -11,6 +11,7 @@ tokens = ('MOV',  # レジスタ間のデータ転送
           'OUT',  # 出力
           'RESISTER',  # レジスタ
           'VALUE',  # 値
+          'LABEL',#ラベル
 
           )
 
@@ -31,6 +32,10 @@ def t_VALUE(t):
     t.value = int(t.value[:-1], 16) if t.value[-1] == 'H' else int(t.value, 10)
     return t
 
+def t_LABEL(t):
+    r'[0-9A-Za-z]+:'
+    t.value = {str(t.value[:-1]): int(t.lexer.lineno)}
+    return t
 
 def t_newline(t):
     r'\n+'
@@ -62,4 +67,4 @@ def bebug(lexer, data):
 
 
 if __name__ == '__main__':
-    bebug(lexer, "OUT R3 0\nHALT")
+    bebug(lexer, "casat1:OUT R3 0\nHALT")

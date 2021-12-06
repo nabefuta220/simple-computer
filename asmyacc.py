@@ -15,7 +15,7 @@ logger.info("value max: %d", 1 << MEMORY_BIT)
 
 resister = {'R0': None, 'R1': 0, 'R2': 0,
             'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
-
+labels = {}
 memory = [0 for _ in range(1 << WARD_BIT)]
 
 OVERFLOW = False
@@ -188,40 +188,11 @@ def p_out(p):
         raise NotImplementedError('device %s is not resistered!', p[2])
 
 
-def p_error(p):
-    print("Syntax error in input!")
-
-
-def p_load(p):
-    'cmd : LOAD RESISTER VALUE'
-    global resister, memory
-    resister[p[2]] = memory[p[3]]
-
-
-def p_sta(p):
-    'cmd : STA RESISTER VALUE'
-    global resister, memory
-    memory[p[3]] = resister[p[2]]
-
-
-def p_func(p):
-    'cmd : FUNC VALUE VALUE'
-    global resister, memory
-    calc(resister['R1'], memory[p[3]], p[2])
-
-
-def p_halt(p):
-    'cmd : HALT'
-    sys.exit()
-
-
-def p_out(p):
-    'cmd : OUT RESISTER VALUE'
-    global resister
-    if p[3] == 0:
-        print(resister[p[2]])
-    else:
-        raise NotImplementedError('device %s is not resistered!', p[2])
+def p_label(p):
+    'cmd : LABEL cmd'
+    global labels
+    labels.update(p[1])
+    print(f"labels: {labels}")
 
 
 def p_error(p):
