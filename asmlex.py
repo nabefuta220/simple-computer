@@ -40,14 +40,26 @@ def t_newline(t):
 t_ignore = ' \t'
 
 
-
 def t_error(t):
     print(f"at line {t.lexer.lineno}:Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
 
-def main():
-    lexer = lex.lex()
+lexer = lex.lex()
 
 
-main()
+def bebug(lexer, data):
+    datas = data.split('\n')
+    print(f"command : {datas}")
+    for command in datas:
+        lexer.input(command)  # dataを読み込む
+        while True:
+            tok = lexer.token()  # トークンに分解する
+            if not tok:
+                break
+            print(tok)
+        print("----")
+
+
+if __name__ == '__main__':
+    bebug(lexer, "OUT R3 0\nHALT")

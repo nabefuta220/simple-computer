@@ -1,9 +1,9 @@
 import logging
 import sys
-from types import SimpleNamespace
+
 
 import ply.yacc as yacc
-
+from asmlex import lexer as lexer
 import logger
 from asmlex import tokens
 
@@ -144,7 +144,7 @@ def p_fuci(p):
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
     global resister, memory
-    global ZERO,SIGN,OVERFLOW,CARRY
+    global ZERO, SIGN, OVERFLOW, CARRY
     resister[p[2]] = memory[p[3]]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -166,8 +166,6 @@ def p_sta(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
-
-
 
 
 def p_func(p):
@@ -232,22 +230,26 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-args = sys.argv
-if len(args) == 2:
-    f = open(args[1], "r")
-    while True:
-        line = f.readline()
-        if line:
-            result = parser.parse(line)
-        else:
-            raise Exception("exert not finished!")
-else:
-    while True:
-        try:
-            s = input('SIMCOM > ')
-        except EOFError:
-            raise Exception("exert not finished!")
-            break
-        if not s:
-            continue
-        result = parser.parse(s)
+
+def main(args):
+    if len(args) == 2:
+        f = open(args[1], "r")
+        while True:
+            line = f.readline()
+            if line:
+                result = parser.parse(line)
+            else:
+                raise Exception("exert not finished!")
+    else:
+        while True:
+            try:
+                s = input('SIMCOM > ')
+            except EOFError:
+                raise Exception("exert not finished!")
+                break
+            if not s:
+                continue
+            result = parser.parse(s)
+
+
+main(sys.argv)
