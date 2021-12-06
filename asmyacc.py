@@ -9,20 +9,20 @@ from asmlex import tokens
 
 logger = logging.getLogger(__name__)
 
-WARD_BIT = 8
-MEMORY_BIT = 8
+WARD_BIT = 8  # 1ワードのビット長
+MEMORY_BIT = 8  # アドレスのビット長
 logger.info("value max: %d", 1 << MEMORY_BIT)
 
 resister = {'R0': None, 'R1': 0, 'R2': 0,
-            'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}
-labels = {}
-memory = [0 for _ in range(1 << WARD_BIT)]
-
+            'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}  # レジスタの情報
+labels = {}  # ラベルの情報
+memory = [0 for _ in range(1 << WARD_BIT)]  # メモリの情報
+counter = 0  # 次に読み込むアドレス
 OVERFLOW = False
 CARRY = False
 SIGN = False
 ZERO = False
-STATE_FLAG = 0
+STATE_FLAG = 0  # 状態レジスタ
 
 
 def generate_state_flag():
@@ -105,26 +105,31 @@ def p_mov(p):
     'cmd : MOV RESISTER RESISTER'
     global resister
     global ZERO, SIGN, OVERFLOW, CARRY
+    global counter
     resister[p[2]] = resister[p[3]]
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
+    counter += 1
 
 
 def p_func_r(p):
     'cmd : FUNC VALUE RESISTER'
     global resister
+    global counter
     logger.info('R1 :\t%d,\t%s :\t %d,\top :\t%d',
                 resister['R1'], p[3], resister[p[3]], p[2])
     calc(resister['R1'], resister[p[3]], p[2])
+    counter += 1
 
 
 def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
     global resister
     global ZERO, SIGN, OVERFLOW, CARRY
+    global counter
     resister[p[2]] = p[3]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
                 (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), p[3], bin(p[3]))
@@ -133,18 +138,22 @@ def p_ldi(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
+    counter += 1
 
 
 def p_fuci(p):
     'cmd : FUCI VALUE VALUE'
     global resister
+    global counter
     calc(resister['R1'], p[3], p[2])
+    counter += 1
 
 
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
     global resister, memory
     global ZERO, SIGN, OVERFLOW, CARRY
+    global counter
     resister[p[2]] = memory[p[3]]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -153,11 +162,13 @@ def p_load(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
+    counter += 1
 
 
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
     global resister, memory
+    global counter
     memory[p[3]] = resister[p[2]]
     logger.info('memory[%d] :\t%d\t(%d)\t%s', p[3],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -166,12 +177,15 @@ def p_sta(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
+    counter += 1
 
 
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
+    global counter
     global resister, memory
     calc(resister['R1'], memory[p[3]], p[2])
+    counter += 1
 
 
 def p_halt(p):
@@ -182,21 +196,25 @@ def p_halt(p):
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
     global resister
+    global counter
     if p[3] == 0:
         print(resister[p[2]])
     else:
         raise NotImplementedError('device %s is not resistered!', p[2])
+    counter += 1
 
 
 def p_label(p):
-    'cmd : LABEL cmd'
+    'cmd : LABEL_IN cmd'
     global labels
-    labels.update(p[1])
+    global counter
+    labels.update({p[1]: counter})
     print(f"labels: {labels}")
 
 
 def p_error(p):
     print("Syntax error in input!")
+    sys.exit()
 
 
 parser = yacc.yacc()
@@ -223,4 +241,20 @@ def main(args):
             result = parser.parse(s)
 
 
-main(sys.argv)
+def test(args):
+    global counter
+    with open(args[1], 'r') as f:
+        lines = f.read().split('\n')
+    print(lines)
+    while True:
+        if not lines[counter]:
+            counter+=1
+        try:
+            print(f"\nline {counter}:{lines[counter]}")
+            result = parser.parse(lines[counter])
+        except IndexError:
+            logger.error("exert did not finished!")
+            sys.exit()
+
+
+test(sys.argv)
