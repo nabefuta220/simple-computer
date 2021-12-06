@@ -144,7 +144,7 @@ def p_fuci(p):
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
     global resister, memory
-    global ZERO,SIGN,OVERFLOW,CARRY
+    global ZERO, SIGN, OVERFLOW, CARRY
     resister[p[2]] = memory[p[3]]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -158,6 +158,7 @@ def p_load(p):
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
     global resister, memory
+    global ZERO, OVERFLOW, CARRY
     memory[p[3]] = resister[p[2]]
     logger.info('memory[%d] :\t%d\t(%d)\t%s', p[3],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -166,44 +167,6 @@ def p_sta(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
-
-
-
-
-def p_func(p):
-    'cmd : FUNC VALUE VALUE'
-    global resister, memory
-    calc(resister['R1'], memory[p[3]], p[2])
-
-
-def p_halt(p):
-    'cmd : HALT'
-    sys.exit()
-
-
-def p_out(p):
-    'cmd : OUT RESISTER VALUE'
-    global resister
-    if p[3] == 0:
-        print(resister[p[2]])
-    else:
-        raise NotImplementedError('device %s is not resistered!', p[2])
-
-
-def p_error(p):
-    print("Syntax error in input!")
-
-
-def p_load(p):
-    'cmd : LOAD RESISTER VALUE'
-    global resister, memory
-    resister[p[2]] = memory[p[3]]
-
-
-def p_sta(p):
-    'cmd : STA RESISTER VALUE'
-    global resister, memory
-    memory[p[3]] = resister[p[2]]
 
 
 def p_func(p):
