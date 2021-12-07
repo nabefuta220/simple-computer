@@ -203,6 +203,8 @@ def p_sta(p):
     'cmd : STA RESISTER VALUE'
     global resister, memory
     global counter
+    global ZERO, OVERFLOW, CARRY
+
     memory[p[3]] = resister[p[2]]
     logger.info('memory[%d] :\t%d\t(%d)\t%s', p[3],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
@@ -211,11 +213,14 @@ def p_sta(p):
     OVERFLOW = SIGN
     CARRY = False
     generate_state_flag()
+
     counter += 1
+
 
 
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
+
     global counter
     global resister, memory
     calc(memory[p[3]], resister['R1'],  p[2])
@@ -231,6 +236,7 @@ def p_jmp(p):
         counter +=1
 
 
+
 def p_halt(p):
     'cmd : HALT'
     sys.exit()
@@ -239,11 +245,14 @@ def p_halt(p):
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
     global resister
+
     global counter
+
     if p[3] == 0:
         print(resister[p[2]])
     else:
         raise NotImplementedError('device %s is not resistered!', p[2])
+
     counter += 1
 
 
@@ -253,6 +262,7 @@ def p_label(p):
     global counter
     labels.update({p[1]: counter-1})
     print(f"labels: {labels}")
+
 
 
 def p_error(p):
