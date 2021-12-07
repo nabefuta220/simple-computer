@@ -143,7 +143,7 @@ def p_mov(p):
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
     CARRY = False
-    #generate_state_flag()
+    generate_state_flag()
     counter += 1
 
 
