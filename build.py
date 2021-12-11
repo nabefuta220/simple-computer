@@ -4,6 +4,7 @@ import sys
 
 import ply.yacc as yacc
 
+
 import logger
 from asmlex import tokens, build_lex
 logger = logging.getLogger(__name__)
@@ -133,5 +134,5 @@ def build(file: str):
 
     return labels
 
-
-print(build(sys.argv[1]))
+if __name__ =='__main__':
+    print(build(sys.argv[1]))
