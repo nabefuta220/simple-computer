@@ -33,6 +33,9 @@ tokens = [
 
 ] + list(reserved.values())
 
+t_ignore = ' \t'
+t_ignore_COMMENT = r'\#.*$'
+
 #ラベルへのジャンプ
 def t_LABEL_OUT(t):
     r'[0-9A-Za-z]+$'
@@ -70,8 +73,7 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 
-t_ignore = ' \t'
-t_ignore_COMMENT = r'\#.*'
+
 
 
 def t_error(t):
