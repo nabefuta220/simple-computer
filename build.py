@@ -15,6 +15,7 @@ MEMORY_BIT = 8  # アドレスのビット長
 labels: dict = {}  # ラベルの情報
 used_labels: set = set()  # 使用しているラベルの情報
 counter = 0  # 行数
+word_used = 0  # 使用ワード数
 precedence = (  # 計算の優先順位を決める
     ('left', 'LABEL_IN'),
 
@@ -23,18 +24,26 @@ precedence = (  # 計算の優先順位を決める
 
 def p_mov(p):
     'cmd : MOV RESISTER RESISTER'
+    global word_used
+    word_used += 1
 
 
 def p_func_r(p):
     'cmd : FUNC VALUE RESISTER'
+    global word_used
+    word_used += 1
 
 
 def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
+    global word_used
+    word_used += 2
 
 
 def p_fuci(p):
     'cmd : FUCI VALUE VALUE'
+    global word_used
+    word_used += 2
 
 
 def p_load(p):
@@ -43,15 +52,21 @@ def p_load(p):
 
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
+    global word_used
+    word_used += 2
 
 
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
+    global word_used
+    word_used += 2
 
 
 def p_label_out(p):
     'cmd : JMP VALUE LABEL_OUT'
     global used_labels
+    global word_used
+    word_used += 2
     used_labels.add(p[3])
 
 
@@ -68,10 +83,14 @@ def p_label_in(p):
 
 def p_halt(p):
     'cmd : HALT'
+    global word_used
+    word_used += 1
 
 
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
+    global word_used
+    word_used += 2
 
 
 def p_error(p):
@@ -83,6 +102,23 @@ def p_error(p):
 def parse():
     return yacc.yacc()
 
+
+def cheak_words():
+    """
+    ワード数をチェックする
+
+    Returns
+    -------
+    word_used : int
+        使用しているワード数
+    """
+    global word_used
+
+    if word_used >= (1 << WARD_BIT):
+        logger.error("memory size exceed")
+
+    logger.info("used mamory size: %d[word]", word_used)
+    return word_used
 
 def cheak_label(labels: set, used_labels: set):
     """
@@ -131,8 +167,9 @@ def build(file: str):
         counter += 1
 
     cheak_label(used_labels=used_labels, labels=set(labels))
-
+    cheak_words()
     return labels
 
-if __name__ =='__main__':
+
+if __name__ == '__main__':
     print(build(sys.argv[1]))
