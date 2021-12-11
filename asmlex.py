@@ -1,7 +1,7 @@
-from logging import FATAL
+import re
+
 import ply.lex as lex
 
-import re
 t_MOV = 'MOV'
 t_FUNC = 'FUNC'
 t_LDI = 'LDI'
@@ -33,7 +33,10 @@ tokens = [
 
 ] + list(reserved.values())
 
+t_ignore = ' \t'
+t_ignore_COMMENT = r'\#.*$'
 
+#ラベルへのジャンプ
 def t_LABEL_OUT(t):
     r'[0-9A-Za-z]+$'
     t.type = reserved.get(t.value, 'LABEL_OUT')
@@ -47,12 +50,13 @@ def t_LABEL_OUT(t):
         t.lexer.skip(1)
     return t
 
+#数値
 def t_VALUE(t):
     r'([0-9A-Fa-f]+H)|\d+'
     t.value = int(t.value[:-1], 16) if t.value[-1] == 'H' else int(t.value, 10)
     return t
 
-
+#ラベルの定義
 def t_LABEL_IN(t):
     r'[0-9A-Za-z]+:'
     t.value = t.value[:-1]
@@ -63,18 +67,13 @@ def t_LABEL_IN(t):
         t.lexer.skip(1)
     return t
 
-
-
-
-
+#改行
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
 
-t_ignore = ' \t'
 
-t_ignore_comment = r'\#.*'
 
 
 def t_error(t):
@@ -82,7 +81,9 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-lexer = lex.lex()
+def build_lex():
+    #構文解析をする
+    return lex.lex()
 
 
 def bebug(lexer, data):
@@ -99,4 +100,4 @@ def bebug(lexer, data):
 
 
 if __name__ == '__main__':
-    bebug(lexer, "casat1:OUT R3 0\nHALT")
+    bebug(build_lex(), "casat1:OUT R3 0\nHALT")

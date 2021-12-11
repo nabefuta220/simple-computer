@@ -1,16 +1,15 @@
 import logging
 import sys
 
-
 import ply.yacc as yacc
-from asmlex import lexer as lexer
+
 import logger
-from asmlex import tokens
+from asmlex import build_lex, tokens
+from build import MEMORY_BIT, WARD_BIT, build
 
 logger = logging.getLogger(__name__)
 
-WARD_BIT = 8  # 1ワードのビット長
-MEMORY_BIT = 8  # アドレスのビット長
+
 logger.info("value max: %d", 1 << MEMORY_BIT)
 
 resister = {'R0': None, 'R1': 0, 'R2': 0,
@@ -33,25 +32,26 @@ precedence = (  # 計算の優先順位を決める
 def generate_state_flag():
     """
     ステートフラグを生成する
-    順番は　0b(CARRY)(SIGN)(ZERO)(OVERFLOW)の順
+    順番は 0b(CARRY)(SIGN)(ZERO)(OVERFLOW)の順
     """
     global CARRY, SIGN, ZERO, OVERFLOW
     global STATE_FLAG
     STATE_FLAG = CARRY << 1 | SIGN << 2 | ZERO << 1 | OVERFLOW << 0
     logger.info('state:\t%s', bin(STATE_FLAG))
 
-def det_jmp(condition:int):
+
+def det_jmp(condition: int):
     """
     ジャンプするか決定する
     """
     global STATE_FLAG
-    condition &= ((1<<3)-1)
-    if condition ==0:
+    condition &= ((1 << 3)-1)
+    if condition == 0:
         return True
-    if condition ==1:
-        return bool(STATE_FLAG & (1<<0))
+    if condition == 1:
+        return bool(STATE_FLAG & (1 << 0))
     if condition == 2:
-        return bool(STATE_FLAG & (1<<1))
+        return bool(STATE_FLAG & (1 << 1))
     if condition == 3:
         return not bool(STATE_FLAG & (1 << 1))
     if condition == 4:
@@ -62,7 +62,6 @@ def det_jmp(condition:int):
         return bool(STATE_FLAG & (1 << 3))
     if condition == 7:
         return not bool(STATE_FLAG & (1 << 3))
-
 
 
 def calc(value1: int, value2: int, operator: int):
@@ -164,9 +163,10 @@ def p_ldi(p):
     global counter
     resister[p[2]] = p[3]
     logger.info('%s :\t%d\t(%d)\t%s', p[2],
-                (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1),
-                 p[3], 
-                 bin(p[3]))
+                (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1) *
+                (bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1),
+                p[3],
+                bin(p[3]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
@@ -217,7 +217,6 @@ def p_sta(p):
     counter += 1
 
 
-
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
 
@@ -226,15 +225,15 @@ def p_func(p):
     calc(memory[p[3]], resister['R1'],  p[2])
     counter += 1
 
+
 def p_jmp(p):
     'cmd : JMP VALUE LABEL_OUT'
     global counter
     global labels
     if det_jmp(p[2]):
-        counter= labels[p[3]]
+        counter = labels[p[3]]
     else:
-        counter +=1
-
+        counter += 1
 
 
 def p_halt(p):
@@ -258,11 +257,7 @@ def p_out(p):
 
 def p_label(p):
     'cmd : LABEL_IN cmd'
-    global labels
-    global counter
-    labels.update({p[1]: counter-1})
-    print(f"labels: {labels}")
-
+    pass
 
 
 def p_error(p):
@@ -271,10 +266,13 @@ def p_error(p):
     sys.exit()
 
 
-parser = yacc.yacc()
+def parse():
+    return yacc.yacc()
 
 
 def main(args):
+    lex = build_lex()
+    parser = parse()
     if len(args) == 2:
         f = open(args[1], "r")
         while True:
@@ -289,26 +287,38 @@ def main(args):
                 s = input('SIMCOM > ')
             except EOFError:
                 raise Exception("exert not finished!")
-                break
             if not s:
                 continue
             result = parser.parse(s)
 
 
-def test(args):
+def test(file: str):
+    """
+    実行する
+
+    Parameters
+    ----------
+    file : str
+        入力ファイル
+    """
     global counter
-    with open(args[1], 'r') as f:
+    global labels
+    labels = build(file)
+    print("------")
+    lex = build_lex()
+    parser = parse()
+    counter = 0
+    with open(file, 'r') as f:
         lines = f.read().split('\n')
-    print(lines)
     while True:
         if not lines[counter]:
-            counter+=1
+            counter += 1
         try:
-            print(f"\nline {counter}:{lines[counter]}")
+            logger.debug("line %s : %s", counter, lines[counter])
             result = parser.parse(lines[counter])
         except IndexError:
             logger.error("exert did not finished!")
             sys.exit()
 
 
-test(sys.argv)
+test(sys.argv[1])

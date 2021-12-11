@@ -18,11 +18,11 @@ logger.setLevel(DEBUG)
 
 # ログの出力形式の設定
 formatter = logging.Formatter(
-    '%(message)s')
+    '[%(levelname)6s] %(message)s')
 
 # ログのコンソール出力の設定
 sh = logging.StreamHandler(sys.stderr)
-sh.setLevel(logging.INFO)
+sh.setLevel(logging.DEBUG)
 sh.setFormatter(formatter)
 
 # ログのファイル出力の作成
