@@ -11,6 +11,9 @@ t_STA = 'STA'
 t_JMP = 'JMP'
 t_HALT = 'HALT'
 t_OUT = 'OUT'
+t_RET = 'RET'
+t_SET = 'SET'
+t_CAL = 'CAL'
 
 t_RESISTER = r'R[0-7]'
 
@@ -22,6 +25,9 @@ reserved = {
     'STA': t_STA,  # レジスタからメモリへのデータ転送
     'FUNC': t_FUNC,  # レジスタとメモリとの演算
     'JMP': t_JMP,  # 特定の番地に飛ばす
+    'CAL': t_CAL,  # サブルーチン呼び出し
+    'RET': t_RET,  # サブルーチン復帰
+    'SET': t_SET,  # スタックポインタ変更
     'OUT': t_OUT,  # 出力
     'HALT': t_HALT,  # 停止
 }
@@ -36,7 +42,9 @@ tokens = [
 t_ignore = ' \t'
 t_ignore_COMMENT = r'\#.*$'
 
-#ラベルへのジャンプ
+# ラベルへのジャンプ
+
+
 def t_LABEL_OUT(t):
     r'[0-9A-Za-z]+$'
     t.type = reserved.get(t.value, 'LABEL_OUT')
@@ -50,13 +58,17 @@ def t_LABEL_OUT(t):
         t.lexer.skip(1)
     return t
 
-#数値
+# 数値
+
+
 def t_VALUE(t):
     r'([0-9A-Fa-f]+H)|\d+'
     t.value = int(t.value[:-1], 16) if t.value[-1] == 'H' else int(t.value, 10)
     return t
 
-#ラベルの定義
+# ラベルの定義
+
+
 def t_LABEL_IN(t):
     r'[0-9A-Za-z]+:'
     t.value = t.value[:-1]
@@ -67,13 +79,12 @@ def t_LABEL_IN(t):
         t.lexer.skip(1)
     return t
 
-#改行
+# 改行
+
+
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
-
-
-
 
 
 def t_error(t):
@@ -82,7 +93,7 @@ def t_error(t):
 
 
 def build_lex():
-    #構文解析をする
+    # 構文解析をする
     return lex.lex()
 
 
