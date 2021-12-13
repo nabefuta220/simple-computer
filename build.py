@@ -87,6 +87,24 @@ def p_halt(p):
     word_used += 1
 
 
+def p_cal(p):
+    'cmd : CAL VALUE VALUE'
+    global word_used
+    word_used += 2
+
+
+def p_ret(p):
+    'cmd : RET VALUE'
+    global word_used
+    word_used += 1
+
+
+def p_set(p):
+    'cmd : SET VALUE'
+    global word_used
+    word_used += 1
+
+
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
     global word_used
@@ -119,6 +137,7 @@ def cheak_words():
 
     logger.info("used mamory size: %d[word]", word_used)
     return word_used
+
 
 def cheak_label(labels: set, used_labels: set):
     """
