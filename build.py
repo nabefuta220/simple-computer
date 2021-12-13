@@ -100,7 +100,7 @@ def p_ret(p):
 
 
 def p_set(p):
-    'cmd : SET VALUE'
+    'cmd : SET RESISTER'
     global word_used
     word_used += 1
 
