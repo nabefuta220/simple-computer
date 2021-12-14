@@ -239,15 +239,15 @@ def p_jmp(p):
 
 def p_cal(p):
     'cmd : CAL VALUE LABEL_OUT'
-    #サブルーチンの呼び出し
+    # サブルーチンの呼び出し
     global counter
     global labels
     global stack_point
     if det_jmp(p[2]):
-        #復帰番地を追加
-        memory[stack_point]=counter+1
-        stack_point-=1
-        #ラベルへ飛ばす
+        # 復帰番地を追加
+        memory[stack_point] = counter+1
+        stack_point -= 1
+        # ラベルへ飛ばす
         counter = labels[p[3]]
 
     else:
@@ -256,12 +256,12 @@ def p_cal(p):
 
 def p_ret(p):
     'cmd : RET VALUE'
-    #サブルーチンの終了
+    # サブルーチンの終了
     global counter
     global labels
     global stack_point
     if det_jmp(p[2]):
-        #番地の復帰
+        # 番地の復帰
         stack_point += 1
         counter = memory[stack_point]
 
@@ -271,10 +271,12 @@ def p_ret(p):
 
 def p_set(p):
     'cmd : SET RESISTER'
-    #スタックポインタの設定
+    # スタックポインタの設定
     global stack_point
     global resister
-    stack_point = resister[p[1]]
+    global counter
+    stack_point = resister[p[2]]
+    counter += 1
 
 
 def p_halt(p):
