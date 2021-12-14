@@ -106,21 +106,20 @@ def calc(value1: int, value2: int, operator: int):
         result_sign = ~value1
 
     logger.debug('\tresult:\t%d\t(%d)\t%s',
-                result, result_sign, bin(result))
+                 result, result_sign, bin(result))
     result_fixed = result & ((1 << MEMORY_BIT)-1)
     result_sign_fixed = (result_fixed & ((1 << MEMORY_BIT-1)-1))+(-1) * \
         (bool(result_fixed & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     logger.debug('\tfixed:\t%d\t(%d)\t%s',
-                result_fixed, result_sign_fixed, bin(result_fixed))
+                 result_fixed, result_sign_fixed, bin(result_fixed))
     CARRY = result != result_fixed
     OVERFLOW = result_sign != result_sign_fixed
 
-    
     ZERO = result == 0
     resister['R1'] = result
     logger.debug('\tresult : singed: %d , unsined : %d bin:(%s)',
-                (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
-    SIGN = bool(result & 1<<MEMORY_BIT-1)
+                 (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
+    SIGN = bool(result & 1 << MEMORY_BIT-1)
     CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
     OVERFLOW = not(0 <= result < (1 << MEMORY_BIT))
 
@@ -128,7 +127,7 @@ def calc(value1: int, value2: int, operator: int):
     ZERO = result == 0
     resister['R1'] = result
     logger.debug("\tsign : %d , zero : %d , carry : %d , overflow : %d",
-                SIGN, ZERO, CARRY, OVERFLOW)
+                 SIGN, ZERO, CARRY, OVERFLOW)
     generate_state_flag()
 
 
@@ -151,7 +150,7 @@ def p_func_r(p):
     global resister
     global counter
     logger.debug('\tR1 :\t%d,\t%s :\t %d,\top :\t%d',
-                resister['R1'], p[3], resister[p[3]], p[2])
+                 resister['R1'], p[3], resister[p[3]], p[2])
     calc(resister[p[3]], resister['R1'], p[2])
     counter += 1
 
@@ -163,10 +162,10 @@ def p_ldi(p):
     global counter
     resister[p[2]] = p[3]
     logger.debug('\t%s :\t%d\t(%d)\t%s', p[2],
-                (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1) *
-                (bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1),
-                p[3],
-                bin(p[3]))
+                 (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1) *
+                 (bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1),
+                 p[3],
+                 bin(p[3]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
@@ -190,7 +189,7 @@ def p_load(p):
     global counter
     resister[p[2]] = memory[p[3]]
     logger.debug('\t%s :\t%d\t(%d)\t%s', p[2],
-                (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
+                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
@@ -207,7 +206,7 @@ def p_sta(p):
 
     memory[p[3]] = resister[p[2]]
     logger.debug('\tmemory[%d] :\t%d\t(%d)\t%s', p[3],
-                (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
+                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
     OVERFLOW = SIGN
@@ -286,12 +285,15 @@ def p_halt(p):
 
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
+    # 出力
     global resister
-
     global counter
 
     if p[3] == 0:
-        print(resister[p[2]])
+        # 標準出力に出力
+        print(resister[p[2]], file=sys.stdout)
+    elif p[3] == 1:
+        print(resister[p[2]], file=sys.stderr)
     else:
         raise NotImplementedError('device %s is not resistered!', p[2])
 
