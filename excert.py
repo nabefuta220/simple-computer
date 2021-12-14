@@ -115,17 +115,16 @@ def calc(value1: int, value2: int, operator: int):
     CARRY = result != result_fixed
     OVERFLOW = result_sign != result_sign_fixed
 
-    SIGN = result_sign_fixed < 0
+    
     ZERO = result == 0
     resister['R1'] = result
     logger.info('result : singed: %d , unsined : %d bin:(%s)',
                 (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
-
+    SIGN = bool(result & 1<<MEMORY_BIT-1)
     CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
     OVERFLOW = not(0 <= result < (1 << MEMORY_BIT))
 
     result &= ((1 << MEMORY_BIT)-1)
-    SIGN = result < 0
     ZERO = result == 0
     resister['R1'] = result
     logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
