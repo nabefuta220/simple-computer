@@ -17,6 +17,7 @@ resister = {'R0': None, 'R1': 0, 'R2': 0,
 labels = {}  # ラベルの情報
 memory = [0 for _ in range(1 << WARD_BIT)]  # メモリの情報
 counter = 0  # 次に読み込むアドレス
+stack_point = 0  # スタックポインタ
 OVERFLOW = False
 CARRY = False
 SIGN = False
@@ -37,7 +38,7 @@ def generate_state_flag():
     global CARRY, SIGN, ZERO, OVERFLOW
     global STATE_FLAG
     STATE_FLAG = CARRY << 1 | SIGN << 2 | ZERO << 1 | OVERFLOW << 0
-    logger.info('state:\t%s', bin(STATE_FLAG))
+    logger.debug('\tstate:\t%s', bin(STATE_FLAG))
 
 
 def det_jmp(condition: int):
@@ -74,8 +75,8 @@ def calc(value1: int, value2: int, operator: int):
         (bool(value1 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
     value2_sign = (value2 & ((1 << MEMORY_BIT-1)-1))+(-1) * \
         (bool(value2 & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
-    logger.info("value1:\t%d\t(%d)\t%s", value1, value1_sign, bin(value1))
-    logger.info("value2:\t%d\t(%d)\t%s", value2, value2_sign, bin(value2))
+    logger.debug("\tvalue1:\t%d\t(%d)\t%s", value1, value1_sign, bin(value1))
+    logger.debug("\tvalue2:\t%d\t(%d)\t%s", value2, value2_sign, bin(value2))
     operator = operator % 8
     result = 0
     result_sign = 0
@@ -104,30 +105,29 @@ def calc(value1: int, value2: int, operator: int):
         result = ~value1
         result_sign = ~value1
 
-    logger.info('result:\t%d\t(%d)\t%s',
+    logger.debug('\tresult:\t%d\t(%d)\t%s',
                 result, result_sign, bin(result))
     result_fixed = result & ((1 << MEMORY_BIT)-1)
     result_sign_fixed = (result_fixed & ((1 << MEMORY_BIT-1)-1))+(-1) * \
         (bool(result_fixed & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1)
-    logger.info('fixed:\t%d\t(%d)\t%s',
+    logger.debug('\tfixed:\t%d\t(%d)\t%s',
                 result_fixed, result_sign_fixed, bin(result_fixed))
     CARRY = result != result_fixed
     OVERFLOW = result_sign != result_sign_fixed
 
-    SIGN = result_sign_fixed < 0
+    
     ZERO = result == 0
     resister['R1'] = result
-    logger.info('result : singed: %d , unsined : %d bin:(%s)',
+    logger.debug('\tresult : singed: %d , unsined : %d bin:(%s)',
                 (result & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(result & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), result, bin(result))
-
+    SIGN = bool(result & 1<<MEMORY_BIT-1)
     CARRY = not (0 <= result <= (1 << MEMORY_BIT-1))
     OVERFLOW = not(0 <= result < (1 << MEMORY_BIT))
 
     result &= ((1 << MEMORY_BIT)-1)
-    SIGN = result < 0
     ZERO = result == 0
     resister['R1'] = result
-    logger.info("sign : %d , zero : %d , carry : %d , overflow : %d",
+    logger.debug("\tsign : %d , zero : %d , carry : %d , overflow : %d",
                 SIGN, ZERO, CARRY, OVERFLOW)
     generate_state_flag()
 
@@ -150,7 +150,7 @@ def p_func_r(p):
     'cmd : FUNC VALUE RESISTER'
     global resister
     global counter
-    logger.info('R1 :\t%d,\t%s :\t %d,\top :\t%d',
+    logger.debug('\tR1 :\t%d,\t%s :\t %d,\top :\t%d',
                 resister['R1'], p[3], resister[p[3]], p[2])
     calc(resister[p[3]], resister['R1'], p[2])
     counter += 1
@@ -162,7 +162,7 @@ def p_ldi(p):
     global ZERO, SIGN, OVERFLOW, CARRY
     global counter
     resister[p[2]] = p[3]
-    logger.info('%s :\t%d\t(%d)\t%s', p[2],
+    logger.debug('\t%s :\t%d\t(%d)\t%s', p[2],
                 (p[3] & ((1 << MEMORY_BIT-1)-1))+(-1) *
                 (bool(p[3] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1),
                 p[3],
@@ -189,7 +189,7 @@ def p_load(p):
     global ZERO, SIGN, OVERFLOW, CARRY
     global counter
     resister[p[2]] = memory[p[3]]
-    logger.info('%s :\t%d\t(%d)\t%s', p[2],
+    logger.debug('\t%s :\t%d\t(%d)\t%s', p[2],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
@@ -206,7 +206,7 @@ def p_sta(p):
     global ZERO, OVERFLOW, CARRY
 
     memory[p[3]] = resister[p[2]]
-    logger.info('memory[%d] :\t%d\t(%d)\t%s', p[3],
+    logger.debug('\tmemory[%d] :\t%d\t(%d)\t%s', p[3],
                 (resister[p[2]] & ((1 << MEMORY_BIT-1)-1))+(-1)*(bool(resister[p[2]] & (1 << MEMORY_BIT-1)) << MEMORY_BIT-1), resister[p[2]], bin(resister[p[2]]))
     ZERO = resister[p[2]] == 0
     SIGN = bool(resister[p[2]] & (1 << MEMORY_BIT-1))
@@ -234,6 +234,49 @@ def p_jmp(p):
         counter = labels[p[3]]
     else:
         counter += 1
+
+
+def p_cal(p):
+    'cmd : CAL VALUE LABEL_OUT'
+    # サブルーチンの呼び出し
+    global counter
+    global labels
+    global stack_point
+    if det_jmp(p[2]):
+        # 復帰番地を追加
+        memory[stack_point] = counter+1
+        stack_point -= 1
+        # ラベルへ飛ばす
+        counter = labels[p[3]]
+        logger.debug("\tstack_point : %d", stack_point)
+    else:
+        counter += 1
+
+
+def p_ret(p):
+    'cmd : RET VALUE'
+    # サブルーチンの終了
+    global counter
+    global labels
+    global stack_point
+    if det_jmp(p[2]):
+        # 番地の復帰
+        stack_point += 1
+        counter = memory[stack_point]
+        logger.debug("\tstack_point : %d", stack_point)
+    else:
+        counter += 1
+
+
+def p_set(p):
+    'cmd : SET RESISTER'
+    # スタックポインタの設定
+    global stack_point
+    global resister
+    global counter
+    stack_point = resister[p[2]]
+    counter += 1
+    logger.debug("\tstack_point : %d", stack_point)
 
 
 def p_halt(p):
@@ -314,7 +357,7 @@ def test(file: str):
         if not lines[counter]:
             counter += 1
         try:
-            logger.debug("line %s : %s", counter, lines[counter])
+            logger.info("line %s : %s", counter, lines[counter])
             result = parser.parse(lines[counter])
         except IndexError:
             logger.error("exert did not finished!")
