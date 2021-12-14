@@ -371,9 +371,10 @@ def test(file: str):
     with open(file, 'r') as f:
         lines = f.read().split('\n')
     while True:
-        if not lines[counter]:
-            counter += 1
+
         try:
+            if not lines[counter]:
+                counter += 1
             logger.info("line %s : %s", counter, lines[counter])
             result = parser.parse(lines[counter])
         except IndexError:
