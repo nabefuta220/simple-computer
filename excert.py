@@ -300,6 +300,21 @@ def p_out(p):
     counter += 1
 
 
+def p_in(p):
+    'cmd : IN RESISTER VALUE'
+    # 入力
+    global resister
+    global counter
+
+    if p[3] == 0:
+        # 標準入力から入力
+        resister[p[2]] = int(input()) & ((1 << MEMORY_BIT)-1)
+    else:
+        raise NotImplementedError('device %s is not resistered!', p[2])
+
+    counter += 1
+
+
 def p_label(p):
     'cmd : LABEL_IN cmd'
     pass

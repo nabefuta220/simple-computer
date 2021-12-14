@@ -10,6 +10,7 @@ t_LOAD = 'LOAD'
 t_STA = 'STA'
 t_JMP = 'JMP'
 t_HALT = 'HALT'
+t_IN='IN'
 t_OUT = 'OUT'
 t_RET = 'RET'
 t_SET = 'SET'
@@ -28,6 +29,7 @@ reserved = {
     'CAL': t_CAL,  # サブルーチン呼び出し
     'RET': t_RET,  # サブルーチン復帰
     'SET': t_SET,  # スタックポインタ変更
+    'IN': t_IN, #入力
     'OUT': t_OUT,  # 出力
     'HALT': t_HALT,  # 停止
 }
