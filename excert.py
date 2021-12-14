@@ -238,7 +238,7 @@ def p_jmp(p):
 
 
 def p_cal(p):
-    'cmd : CAL VALUE VALUE'
+    'cmd : CAL VALUE LABEL_OUT'
     #サブルーチンの呼び出し
     global counter
     global labels

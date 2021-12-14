@@ -88,7 +88,7 @@ def p_halt(p):
 
 
 def p_cal(p):
-    'cmd : CAL VALUE VALUE'
+    'cmd : CAL VALUE LABEL_OUT'
     global word_used
     word_used += 2
 
