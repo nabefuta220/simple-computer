@@ -1,12 +1,13 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+parsetab.py
 *.py[cod]
 *$py.class
 *.out
 # C extensions
 *.so
 Pipfile.lock
-parsetab.py
+
 # Distribution / packaging
 .Python
 build/

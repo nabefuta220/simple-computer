@@ -105,6 +105,11 @@ def p_set(p):
     word_used += 1
 
 
+def p_in(p):
+    'cmd : IN RESISTER VALUE'
+    global word_used
+    word_used += 2
+
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
     global word_used
