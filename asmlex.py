@@ -52,7 +52,7 @@ t_ignore_COMMENT = r'\#.*$'
 
 
 def t_LABEL_OUT(t):
-    r'[0-9A-Za-z]+$'
+    r'[A-Za-z][0-9A-Za-z]*$'
     t.type = reserved.get(t.value, 'LABEL_OUT')
     if re.fullmatch(r'R[0-7]', t.value):
         t.type = 'RESISTER'
@@ -73,7 +73,7 @@ def t_VALUE(t):
 
 
 def t_LABEL_IN(t):
-    r'[0-9A-Za-z]+:'
+    r'[A-Za-z][0-9A-Za-z]*:'
     t.value = t.value[:-1]
     t.type = reserved.get(t.value, 'LABEL_IN')
 
