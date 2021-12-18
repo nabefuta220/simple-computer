@@ -1,7 +1,10 @@
+"""
+字句解析を行う
+"""
 import re
-
 import ply.lex as lex
 
+# パターンの設定
 t_MOV = 'MOV'
 t_FUNC = 'FUNC'
 t_LDI = 'LDI'
@@ -10,14 +13,14 @@ t_LOAD = 'LOAD'
 t_STA = 'STA'
 t_JMP = 'JMP'
 t_HALT = 'HALT'
-t_IN='IN'
+t_IN = 'IN'
 t_OUT = 'OUT'
 t_RET = 'RET'
 t_SET = 'SET'
 t_CAL = 'CAL'
-
 t_RESISTER = r'R[0-7]'
 
+# 予約後の設定
 reserved = {
     'MOV': t_MOV,  # レジスタ間のデータ転送
     'LDI': t_LDI,  # 即値からレジスタへのデータ転送
@@ -29,10 +32,11 @@ reserved = {
     'CAL': t_CAL,  # サブルーチン呼び出し
     'RET': t_RET,  # サブルーチン復帰
     'SET': t_SET,  # スタックポインタ変更
-    'IN': t_IN, #入力
+    'IN': t_IN,  # 入力
     'OUT': t_OUT,  # 出力
     'HALT': t_HALT,  # 停止
 }
+# トークンの設定
 tokens = [
     'RESISTER',  # レジスタ
     'VALUE',  # 値
@@ -55,9 +59,6 @@ def t_LABEL_OUT(t):
     if re.fullmatch(r'([0-9A-Fa-f]+H)|\d+', t.value):
         t.type = 'VALUE'
         return t_VALUE(t)
-    if t.type != 'LABEL_OUT' and False:
-        print(f"at line {t.lexer.lineno} : '{t.value}' can't use as label")
-        t.lexer.skip(1)
     return t
 
 # 数値
@@ -95,22 +96,8 @@ def t_error(t):
 
 
 def build_lex():
-    # 構文解析をする
+    """
+    字句解析をする
+    """
+
     return lex.lex()
-
-
-def bebug(lexer, data):
-    datas = data.split('\n')  # 改行ごとに区切る
-    print(f"command : {datas}")
-    for command in datas:
-        if not command:  # 空文字列を飛ばす
-            continue
-        lexer.input(command)  # dataを読み込む
-        while True:
-            tok = lexer.token()  # トークンに分解する
-            if not tok:
-                break
-
-
-if __name__ == '__main__':
-    bebug(build_lex(), "casat1:OUT R3 0\nHALT")

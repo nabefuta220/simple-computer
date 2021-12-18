@@ -1,12 +1,15 @@
+"""
+実行前のチェックを行う
+"""
+
 import logging
 import sys
 
-
 import ply.yacc as yacc
 
-
 import logger
-from asmlex import tokens, build_lex
+from asmlex import build_lex, tokens
+
 logger = logging.getLogger(__name__)
 
 WARD_BIT = 8  # 1ワードのビット長
@@ -24,46 +27,72 @@ precedence = (  # 計算の優先順位を決める
 
 def p_mov(p):
     'cmd : MOV RESISTER RESISTER'
+    """
+    レジスタ間でデータを移動する
+    """
     global word_used
     word_used += 1
 
 
 def p_func_r(p):
     'cmd : FUNC VALUE RESISTER'
+    """
+    レジスタとR1間で演算を行う
+    """
     global word_used
     word_used += 1
 
 
 def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
+    """
+    レジスタに値を格納する
+    """
     global word_used
     word_used += 2
 
 
 def p_fuci(p):
     'cmd : FUCI VALUE VALUE'
+    """
+    値とR1間で演算を行う
+    """
     global word_used
     word_used += 2
 
 
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
+    """
+    レジスタにメモリの値を代入する
+    """
+    global word_used
+    word_used += 2
 
 
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
+    """
+    メモリにレジスタの値を代入する
+    """
     global word_used
     word_used += 2
 
 
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
+    """
+    メモリとR1間で演算を行う
+    """
     global word_used
     word_used += 2
 
 
 def p_label_out(p):
     'cmd : JMP VALUE LABEL_OUT'
+    """
+    ラベルに飛ぶ
+    """
     global used_labels
     global word_used
     word_used += 2
@@ -72,6 +101,9 @@ def p_label_out(p):
 
 def p_label_in(p):
     'cmd : LABEL_IN cmd'
+    """
+    ラベルをつける
+    """
     global labels
     global counter
     if p[1] in labels:
@@ -83,35 +115,54 @@ def p_label_in(p):
 
 def p_halt(p):
     'cmd : HALT'
+    """
+    プログラムを終了する
+    """
     global word_used
     word_used += 1
 
 
 def p_cal(p):
     'cmd : CAL VALUE LABEL_OUT'
+    """
+    サブルーチンを呼び出す
+    """
     global word_used
     word_used += 2
 
 
 def p_ret(p):
     'cmd : RET VALUE'
+    """
+    サブルーチンから脱出する
+    """
     global word_used
     word_used += 1
 
 
 def p_set(p):
     'cmd : SET RESISTER'
+    """
+    スタックポインタをレジスタの値に設定する
+    """
     global word_used
     word_used += 1
 
 
 def p_in(p):
     'cmd : IN RESISTER VALUE'
+    """
+    入力を受け取る
+    """
     global word_used
     word_used += 2
 
+
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
+    """
+    出力する
+    """
     global word_used
     word_used += 2
 
@@ -123,6 +174,9 @@ def p_error(p):
 
 
 def parse():
+    """
+    構文チェック用の構文解析を行う
+    """
     return yacc.yacc()
 
 
