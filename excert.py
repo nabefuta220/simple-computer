@@ -1,3 +1,6 @@
+"""
+構文解析を行い、実行する
+"""
 import logging
 import sys
 
@@ -9,8 +12,6 @@ from build import MEMORY_BIT, WARD_BIT, build
 
 logger = logging.getLogger(__name__)
 
-
-logger.info("value max: %d", 1 << MEMORY_BIT)
 
 resister = {'R0': None, 'R1': 0, 'R2': 0,
             'R3': 0, 'R4': 0, 'R5': 0, 'R6': 0, 'R7': 0}  # レジスタの情報
@@ -133,6 +134,9 @@ def calc(value1: int, value2: int, operator: int):
 
 def p_mov(p):
     'cmd : MOV RESISTER RESISTER'
+    """
+    レジスタ間でデータを移動する
+    """
     global resister
     global ZERO, SIGN, OVERFLOW, CARRY
     global counter
@@ -147,6 +151,9 @@ def p_mov(p):
 
 def p_func_r(p):
     'cmd : FUNC VALUE RESISTER'
+    """
+    レジスタとR1間で演算を行う
+    """
     global resister
     global counter
     logger.debug('\tR1 :\t%d,\t%s :\t %d,\top :\t%d',
@@ -157,6 +164,9 @@ def p_func_r(p):
 
 def p_ldi(p):
     'cmd : LDI RESISTER VALUE'
+    """
+    レジスタに値を格納する
+    """
     global resister
     global ZERO, SIGN, OVERFLOW, CARRY
     global counter
@@ -176,6 +186,9 @@ def p_ldi(p):
 
 def p_fuci(p):
     'cmd : FUCI VALUE VALUE'
+    """
+    値とR1間で演算を行う
+    """
     global resister
     global counter
     calc(p[3], resister['R1'],  p[2])
@@ -184,6 +197,9 @@ def p_fuci(p):
 
 def p_load(p):
     'cmd : LOAD RESISTER VALUE'
+    """
+    レジスタにメモリの値を代入する
+    """
     global resister, memory
     global ZERO, SIGN, OVERFLOW, CARRY
     global counter
@@ -200,6 +216,9 @@ def p_load(p):
 
 def p_sta(p):
     'cmd : STA RESISTER VALUE'
+    """
+    メモリにレジスタの値を代入する
+    """
     global resister, memory
     global counter
     global ZERO, OVERFLOW, CARRY
@@ -218,6 +237,9 @@ def p_sta(p):
 
 def p_func(p):
     'cmd : FUNC VALUE VALUE'
+    """
+    メモリとR1間で演算を行う
+    """
 
     global counter
     global resister, memory
@@ -227,6 +249,9 @@ def p_func(p):
 
 def p_jmp(p):
     'cmd : JMP VALUE LABEL_OUT'
+    """
+    ラベルに飛ぶ
+    """
     global counter
     global labels
     if det_jmp(p[2]):
@@ -237,7 +262,9 @@ def p_jmp(p):
 
 def p_cal(p):
     'cmd : CAL VALUE LABEL_OUT'
-    # サブルーチンの呼び出し
+    """
+    サブルーチンを呼び出す
+    """
     global counter
     global labels
     global stack_point
@@ -254,7 +281,9 @@ def p_cal(p):
 
 def p_ret(p):
     'cmd : RET VALUE'
-    # サブルーチンの終了
+    """
+    サブルーチンから脱出する
+    """
     global counter
     global labels
     global stack_point
@@ -269,7 +298,9 @@ def p_ret(p):
 
 def p_set(p):
     'cmd : SET RESISTER'
-    # スタックポインタの設定
+    """
+    スタックポインタをレジスタの値に設定する
+    """
     global stack_point
     global resister
     global counter
@@ -280,12 +311,17 @@ def p_set(p):
 
 def p_halt(p):
     'cmd : HALT'
+    """
+    プログラムを終了する
+    """
     sys.exit()
 
 
 def p_out(p):
     'cmd : OUT RESISTER VALUE'
-    # 出力
+    """
+    出力する
+    """
     global resister
     global counter
 
@@ -302,7 +338,9 @@ def p_out(p):
 
 def p_in(p):
     'cmd : IN RESISTER VALUE'
-    # 入力
+    """
+    入力を受け取る
+    """
     global resister
     global counter
 
@@ -317,6 +355,9 @@ def p_in(p):
 
 def p_label(p):
     'cmd : LABEL_IN cmd'
+    """
+    ラベルをつける
+    """
     pass
 
 
@@ -327,6 +368,9 @@ def p_error(p):
 
 
 def parse():
+    """
+    構文解析を行う
+    """
     return yacc.yacc()
 
 
